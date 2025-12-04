@@ -1,0 +1,58 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: YWJjZGVmZ2hpamtsbW5vcA
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_LISTENERS: CONTROLLER://0.0.0.0:29093
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+
+      # === CONFIGURATIONS CRITIQUES POUR UN SEUL BROKER ===
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      
+      # Optionnel mais recommandé
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+
+  # spark:
+  #   build:
+  #     context: ./spark
+  #     dockerfile: Dockerfile
+  #   container_name: spark
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     # config Spark si besoin
+  #     PYSPARK_PYTHON: python3
+  #   volumes:
+  #     - ./spark/app:/app
+  #   command: python /app/main.py
+  #   ports:
+  #     - "4040:4040"
+
+  
+  # spark-nlp:
+  #   build: .
+  #   container_name: spark-nlp
+  #   depends_on:
+  #     - kafka
+  #   volumes:
+  #     - ./dataset:/app/dataset
+  #     - ./output:/app/output
+  #   environment:
+  #     KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+  #   # command: python stream_processor.py
