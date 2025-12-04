@@ -4,9 +4,21 @@ from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, IntegerType, TimestampType
 
+import os
+# scala version 2.13.16
+# spark version 4.0.1
+version = "2.13:4.0.1"
+os.environ['PYSPARK_SUBMIT_ARGS'] = f'--packages org.apache.spark:spark-streaming-kafka-0-10_{version},org.apache.spark:spark-sql-kafka-0-10_{version} pyspark-shell'
+
+
 import spacy
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+
+# VARIABLES ---------------------------------------------------------
+topic = 'social_media_stream'
+host = "localhost:9092"
 
 
 # METHODS -----------------------------------------------------------
@@ -55,7 +67,15 @@ if __name__ == "__main__":
         StructField('text', StringType(), True)]
     )
 
-    df = spark.readStream.option("sep",",").schema(myschema).csv("data")
+    # df = spark.readStream.option("sep",",").schema(myschema).csv("data")
+    df = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", host) \
+    .option("subscribe", topic) \
+    .load()
+
+    df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+    print(df)
     
     cols = ['timestamp', 'user', 'text']
     socialMediaPosts = df.select(*cols)
