@@ -30,7 +30,7 @@ with open(dataset, 'r', encoding='utf-8') as file:
         colonne = {
             "tweet_id": row[0],
             "entity": row[1],
-            # "sentiment": row[2],
+            "sentiment": row[2],
             "message": row[3],
             
         }
