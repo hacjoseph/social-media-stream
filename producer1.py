@@ -32,6 +32,7 @@ with open(dataset, 'r', encoding='utf-8') as file:
             "entity": row[1],
             # "sentiment": row[2],
             "message": row[3],
+            
         }
         
         message = json.dumps(colonne)
