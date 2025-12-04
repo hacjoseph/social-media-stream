@@ -14,13 +14,21 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 def sentimentAnalysis(sentence):
     if sentence is None:
         return "None"
-    # TODO
-    # analyzer = SentimentIntensityAnalyzer()
-    # for sentence in sentences:
-    #     vs = analyzer.polarity_scores(sentence)
-    # label, score = classifier(sentence)
-    # return label, score
-    pass
+    
+    analyzer = SentimentIntensityAnalyzer()
+    
+    vs = analyzer.polarity_scores(sentence)
+    vs.pop('compound')
+
+    result = max(vs, key=vs.get)
+    analyzer = SentimentIntensityAnalyzer()
+    
+    if result == 'neg':
+        return "Negative"
+    if result == 'neu':
+        return "Neutre"
+    if result == 'pos':
+        return "Positive"
 
 
 nlp = spacy.load("fr_core_news_lg")
