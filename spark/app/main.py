@@ -2,7 +2,6 @@ import os
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.13:4.0.1,org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.1 pyspark-shell'
 
 from pyspark.sql.functions import col, from_json, udf
-from pyspark.ml import Pipeline
 from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql import SparkSession
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer

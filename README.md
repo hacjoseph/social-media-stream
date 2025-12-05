@@ -1,6 +1,4 @@
-Etape1 Installer docker
-
-# exécusion de docker
+# Projet : Analyse de Sentiments en Streaming (Kafka + Spark + Reddit)
     sudo docker compose up
 
 ```
