@@ -1,9 +1,0 @@
-```
-python -m venv venv
-venv\Scripts\activate
-deactivate
-```
-
-```
-pip install -r requirements.txt
-```
