@@ -6,7 +6,18 @@ from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql import SparkSession
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-
+# def write_to_mysql(batch_df, batch_id):
+#     (
+#         batch_df.write
+#         .format("jdbc")
+#         .option("url", "jdbc:mysql://localhost:3306/social_stream")
+#         .option("dbtable", "tweets_sentiment")
+#         .option("user", "root")
+#         .option("password", "password")
+#         .option("driver", "com.mysql.cj.jdbc.Driver")
+#         .mode("append")
+#         .save()
+#     )
 
 
 def main():
