@@ -3,8 +3,7 @@ Etape1 Installer docker
 # exécusion de docker
     sudo docker compose up
 
-
-
+```
 def write_to_mysql(batch_df, batch_id):
     (
         batch_df.write
@@ -17,3 +16,7 @@ def write_to_mysql(batch_df, batch_id):
         .mode("append")
         .save()
     )
+```
+
+
+Joseph, Imane, & Alicia TCHEMO

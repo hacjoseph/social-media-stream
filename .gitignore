@@ -1,3 +1,4 @@
 /env
-/env_o
+/env_old
 test_model.py
+/venv
