@@ -4,4 +4,4 @@ Etape1 Installer docker
     sudo docker compose up
 
 
-Joseph, Imane, & Alicia
+Joseph, Imane, & Alicia TCHEMO
