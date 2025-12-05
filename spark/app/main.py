@@ -1,13 +1,13 @@
 import os
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages com.johnsnowlabs.nlp:spark-nlp_2.12:6.2.0, org.apache.spark:spark-streaming-kafka-0-10_2.12:3.3.1,org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1 pyspark-shell'
+os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.13:4.0.1,org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.1 pyspark-shell'
 
-import sparknlp
-from pyspark.sql.functions import col, from_json
+from pyspark.sql.functions import col, from_json, udf
 from pyspark.ml import Pipeline
-from sparknlp.base import DocumentAssembler
-from sparknlp.annotator import SentimentDLModel, UniversalSentenceEncoder
 from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql import SparkSession
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+
 
 
 def main():
@@ -15,55 +15,46 @@ def main():
         .appName("KafkaSentimentAnalysis") \
         .getOrCreate()
 
+    kafka_bootstrap_servers = "localhost:9092"
+    kafka_topic = "social_media_stream"
     
+    def vader_sentiment_udf(text):
+        if text is None or text.strip() == "":
+            return "neutral"
+        score = analyzer.polarity_scores(text)["compound"]
+        if score >= 0.05:
+            return "positive"
+        elif score <= -0.05:
+            return "negative"
+        else:
+            return "neutral"
+        
+    vader_udf = udf(vader_sentiment_udf, StringType())
     schema = StructType([
         StructField("tweet_id", StringType(), True),
         StructField("sentiment", StringType(), True),
         StructField("message", StringType(), True)
     ])
     
+    
+    analyzer = SentimentIntensityAnalyzer()
+    
     dataFrame = spark.readStream.format("kafka") \
-        .option("kafka.bootstrap.servers", "localhost:9092") \
-        .option("subscribe", "social_media_stream") \
+        .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
+        .option("subscribe", kafka_topic) \
         .load()
         
     data = dataFrame.selectExpr("CAST(value AS STRING) as json_str") \
         .select(from_json(col("json_str"), schema).alias("data")) \
         .select("data.*")
         
+    result = data.withColumn("predicted_sentiment", vader_udf(col("message")))
         
-    
-    # 1. Document Assembler
-    documentAssembler = DocumentAssembler() \
-        .setInputCol("message") \
-        .setOutputCol("document")
-        
-    # 2. Universal Sentence Encoder (meilleur pour Twitter)
-    use = UniversalSentenceEncoder.pretrained() \
-        .setInputCols(["document"]) \
-        .setOutputCol("sentence_embeddings")
-        
-    # 3. Modèle de sentiment Twitter
-    sentimentDetector = SentimentDLModel.pretrained("sentimentdl_use_twitter") \
-        .setInputCols(["sentence_embeddings"]) \
-        .setOutputCol("sentiment") \
-        .setThreshold(0.6)  # Seuil de confiance
-    
-    # 4. Pipeline
-    pipeline = Pipeline(stages=[
-        documentAssembler,
-        use,
-        sentimentDetector
-    ])
-    
-    # 5. Entraîner le modèle
-    result = pipeline.fit(spark.createDataFrame([[""]], ["message"])).transform(data)
-    
     # Afficher les résultats
     query = result.select(
         "tweet_id",
-        "sentiment",
-        "sentiment.resul"
+        "message",
+        "predicted_sentiment"
     ).writeStream\
     .format("console")\
     .outputMode("append")\

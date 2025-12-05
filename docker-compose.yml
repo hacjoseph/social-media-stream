@@ -27,7 +27,35 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
+  # producer:
+  #   build:
+  #     context: ./producer
+  #     dockerfile: Dockerfile
+  #   container_name: producer
+  #   depends_on:
+  #     - kafka
+  #   volumes:
+  #     - ./producer:/app
+  #   command: python /producer.py
 
+  # ==============================
+    # ► MYSQL
+  # ==============================
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: social_stream
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # ==============================
+  # ► SPARK (Streaming)
+  # # ==============================
   # spark:
   #   build:
   #     context: ./spark
@@ -35,24 +63,15 @@ services:
   #   container_name: spark
   #   depends_on:
   #     - kafka
+  #     - mysql
   #   environment:
-  #     # config Spark si besoin
   #     PYSPARK_PYTHON: python3
   #   volumes:
   #     - ./spark/app:/app
-  #   command: python /app/main.py
+  #   command: --packages mysql:mysql-connector-j:8.0.33 python /app/main.py
   #   ports:
   #     - "4040:4040"
 
-  
-  # spark-nlp:
-  #   build: .
-  #   container_name: spark-nlp
-  #   depends_on:
-  #     - kafka
-  #   volumes:
-  #     - ./dataset:/app/dataset
-  #     - ./output:/app/output
-  #   environment:
-  #     KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-  #   # command: python stream_processor.py
+
+volumes:
+  mysql_data:
