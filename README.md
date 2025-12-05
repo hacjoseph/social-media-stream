@@ -19,4 +19,4 @@ def write_to_mysql(batch_df, batch_id):
 ```
 
 
-Joseph, Imane, & Alicia TCHEMO
+Joseph HOULAPE, Imane, & Alicia TCHEMO
