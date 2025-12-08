@@ -16,5 +16,16 @@ def write_to_mysql(batch_df, batch_id):
     )
 ```
 
+# Install project
+
+```
+python -m venv venv
+venv\Scripts\activate
+deactivate
+```
+
+```
+pip install -r requirements.txt
+```
 
 Joseph HOULAPE, Imane, & Alicia TCHEMO
