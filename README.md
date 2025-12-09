@@ -61,12 +61,11 @@ Kafka	9092	Broker Kafka
 InfluxDB	8086	Base de données Time-Series
 Grafana	3000	Dashboards
 
-
-## 4. Lancer le Producer (hors Docker)
+## 4. Lancer le Producer (hors Docker)
 
 Dans /kafka :
 
-python producer.py
+    - python producer.py
 
 
 Le producer lit un CSV et envoie chaque ligne sur Kafka dans le topic : social_media_stream
