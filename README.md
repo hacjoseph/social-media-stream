@@ -75,10 +75,10 @@ Le producer lit un CSV et envoie chaque ligne sur Kafka dans le topic : social_m
 Dans /spark:
 
 Linux :
-python3 main.py
+    - python3 main.py
 
 Windows :
-python .\main.py
+    - python .\main.py
 
 
 Spark :
@@ -144,12 +144,12 @@ Org : social_org
 Bucket : sentiment_stream
 
 ## 8. Exemple de requête Grafana (sentiment par entité)
-from(bucket: "sentiment_stream")
-  |> range(start: -7d)
-  |> filter(fn: (r) => r._measurement == "tweets")
-  |> filter(fn: (r) => r._field == "predicted_sentiment")
-  |> group(columns: ["entity", "_value"])
-  |> count()
+    from(bucket: "sentiment_stream")
+        |> range(start: -7d)
+        |> filter(fn: (r) => r._measurement == "tweets")
+        |> filter(fn: (r) => r._field == "predicted_sentiment")
+        |> group(columns: ["entity", "_value"])
+        |> count()
 
 ## 9. Supprimer les anciennes données (Retention Policy)
 
