@@ -5,20 +5,46 @@ from pyspark.sql.functions import col, from_json, udf
 from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql import SparkSession
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+import time
 
-# def write_to_mysql(batch_df, batch_id):
-#     (
-#         batch_df.write
-#         .format("jdbc")
-#         .option("url", "jdbc:mysql://localhost:3306/social_stream")
-#         .option("dbtable", "tweets_sentiment")
-#         .option("user", "root")
-#         .option("password", "password")
-#         .option("driver", "com.mysql.cj.jdbc.Driver")
-#         .mode("append")
-#         .save()
-#     )
 
+INFLUX_URL = "http://localhost:8086"
+INFLUX_TOKEN = "my-super-token"
+INFLUX_ORG = "social_org"
+INFLUX_BUCKET = "sentiment_stream"
+
+client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+write_api = client.write_api()
+
+
+def write_to_influxdb(batch_df, batch_id):
+    """
+    Fonction exécutée à chaque micro-batch Spark.
+    """
+    rows = batch_df.collect()
+
+    if not rows:
+        return
+
+    for row in rows:
+        point = (
+            Point("tweets")
+            .tag("entity", row.entity)  # Tags pour indexation
+            .tag("predicted_sentiment", row.predicted_sentiment)
+            .field("tweet_id", row.tweet_id)  # Fields pour les valeurs
+            .field("message", row.message)
+            .field("sentiment_original", row.sentiment if row.sentiment else "unknown")
+            .time(int(time.time_ns()), WritePrecision.NS)
+        )
+
+        write_api.write(
+            bucket=INFLUX_BUCKET,
+            org=INFLUX_ORG,
+            record=point
+        )
+
+    print(f"✔ Batch {batch_id} written to InfluxDB")
 
 def main():
     spark = SparkSession.builder \
@@ -42,6 +68,7 @@ def main():
     vader_udf = udf(vader_sentiment_udf, StringType())
     schema = StructType([
         StructField("tweet_id", StringType(), True),
+        StructField("entity", StringType(), True),
         StructField("sentiment", StringType(), True),
         StructField("message", StringType(), True)
     ])
@@ -59,16 +86,12 @@ def main():
         .select("data.*")
         
     result = data.withColumn("predicted_sentiment", vader_udf(col("message")))
+    
         
-    # Afficher les résultats
-    query = result.select(
-        "tweet_id",
-        "message",
-        "predicted_sentiment"
-    ).writeStream\
-    .format("console")\
-    .outputMode("append")\
-    .start()
+    query = result.writeStream\
+        .foreachBatch(write_to_influxdb) \
+        .outputMode("append")\
+        .start()
     
     query.awaitTermination()
     

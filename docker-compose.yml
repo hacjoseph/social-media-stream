@@ -1,3 +1,4 @@
+
 services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -15,63 +16,38 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_LISTENERS: CONTROLLER://0.0.0.0:29093
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
-
-      # === CONFIGURATIONS CRITIQUES POUR UN SEUL BROKER ===
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
-      KAFKA_MIN_INSYNC_REPLICAS: 1
-      
-      # Optionnel mais recommandé
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
-  # producer:
-  #   build:
-  #     context: ./producer
-  #     dockerfile: Dockerfile
-  #   container_name: producer
-  #   depends_on:
-  #     - kafka
-  #   volumes:
-  #     - ./producer:/app
-  #   command: python /producer.py
-
   # ==============================
-    # ► MYSQL
-  # ==============================
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: always
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
     ports:
-      - "3306:3306"
+      - "8086:8086"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: social_stream
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin123
+      DOCKER_INFLUXDB_INIT_ORG: social_org
+      DOCKER_INFLUXDB_INIT_BUCKET: sentiment_stream
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-token
     volumes:
-      - mysql_data:/var/lib/mysql
+      - influx_data:/var/lib/influxdb2
 
   # ==============================
-  # ► SPARK (Streaming)
-  # # ==============================
-  # spark:
-  #   build:
-  #     context: ./spark
-  #     dockerfile: Dockerfile
-  #   container_name: spark
-  #   depends_on:
-  #     - kafka
-  #     - mysql
-  #   environment:
-  #     PYSPARK_PYTHON: python3
-  #   volumes:
-  #     - ./spark/app:/app
-  #   command: --packages mysql:mysql-connector-j:8.0.33 python /app/main.py
-  #   ports:
-  #     - "4040:4040"
-
+  graphana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - influxdb
 
 volumes:
-  mysql_data:
+  influx_data:
+  grafana_data:
