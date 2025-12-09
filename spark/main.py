@@ -30,9 +30,9 @@ def write_to_influxdb(batch_df, batch_id):
     for row in rows:
         point = (
             Point("tweets")
-            .tag("entity", row.entity)  # Tags pour indexation
+            .tag("entity", row.entity)  
             .tag("predicted_sentiment", row.predicted_sentiment)
-            .field("tweet_id", row.tweet_id)  # Fields pour les valeurs
+            .field("tweet_id", row.tweet_id)
             .field("message", row.message)
             .field("sentiment_original", row.sentiment if row.sentiment else "unknown")
             .time(int(time.time_ns()), WritePrecision.NS)
@@ -54,6 +54,8 @@ def main():
     kafka_bootstrap_servers = "localhost:9092"
     kafka_topic = "social_media_stream"
     
+    analyzer = SentimentIntensityAnalyzer()
+    
     def vader_sentiment_udf(text):
         if text is None or text.strip() == "":
             return "neutral"
@@ -74,7 +76,6 @@ def main():
     ])
     
     
-    analyzer = SentimentIntensityAnalyzer()
     
     dataFrame = spark.readStream.format("kafka") \
         .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
@@ -91,6 +92,7 @@ def main():
     query = result.writeStream\
         .foreachBatch(write_to_influxdb) \
         .outputMode("append")\
+        .option("checkpointLocation", "/tmp/checkpoints/sentiment") \
         .start()
     
     query.awaitTermination()
