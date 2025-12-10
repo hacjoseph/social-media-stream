@@ -17,7 +17,7 @@ def createData(nb_rows, NB_DAYS:int=15, NB_DELAY_TIME:int=360) -> list:
     while not (total_rows >= nb_rows):
         delay = 0
         msg_per_day = randint(1, NB_MSG_PER_DAY*2)
-        for i in range(msg_per_day):
+        for _ in range(msg_per_day):
             if total_rows >= nb_rows:
                 break
             delay += uniform(0, NB_DELAY_TIME)
@@ -34,7 +34,7 @@ def createFile(file, newfile="data.csv"):
     timestamps = createData(len(data))
     data['timestamps'] = timestamps
     data = data[['timestamps'] + list(data.columns[data.columns != 'timestamps'])]
-    data.to_csv('time_'+newfile, index=False)
+    data.to_csv('dataset\\time_'+newfile, index=False)
 
 
 if __name__ == "__main__":
