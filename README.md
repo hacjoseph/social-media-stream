@@ -20,6 +20,9 @@ def write_to_mysql(batch_df, batch_id):
 
 ```
 python -m venv venv
+```
+
+```
 venv\Scripts\activate
 deactivate
 ```

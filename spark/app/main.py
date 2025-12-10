@@ -7,8 +7,6 @@ from pyspark.sql import SparkSession
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-
-
 def main():
     spark = SparkSession.builder \
         .appName("KafkaSentimentAnalysis") \
