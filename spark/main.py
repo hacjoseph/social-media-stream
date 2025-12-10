@@ -6,7 +6,7 @@ os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.13:4.0.1,org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.1 pyspark-shell'
 
 from pyspark.sql.functions import col, from_json, udf
-from pyspark.sql.types import StructType, StructField, StringType
+from pyspark.sql.types import StructType, StructField, StringType, TimestampType
 from pyspark.sql import SparkSession
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from influxdb_client import InfluxDBClient, Point, WritePrecision
@@ -17,6 +17,7 @@ INFLUX_URL = "http://localhost:8086"
 INFLUX_TOKEN = "my-super-token"
 INFLUX_ORG = "social_org"
 INFLUX_BUCKET = "sentiment_stream"
+
 
 client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
 write_api = client.write_api()
@@ -39,7 +40,7 @@ def write_to_influxdb(batch_df, batch_id):
             .field("tweet_id", row.tweet_id)
             .field("message", row.message)
             .field("sentiment_original", row.sentiment if row.sentiment else "unknown")
-            .time(int(time.time_ns()), WritePrecision.NS)
+            .time(row.timestamp, WritePrecision.NS)
         )
 
         write_api.write(
@@ -73,12 +74,12 @@ def main():
         
     vader_udf = udf(vader_sentiment_udf, StringType())
     schema = StructType([
+        StructField('timestamp', TimestampType(), True),
         StructField("tweet_id", StringType(), True),
         StructField("entity", StringType(), True),
         StructField("sentiment", StringType(), True),
         StructField("message", StringType(), True)
     ])
-    
     
     
     dataFrame = spark.readStream.format("kafka") \

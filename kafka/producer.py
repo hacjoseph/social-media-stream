@@ -24,14 +24,16 @@ with open(dataset, 'r', encoding='utf-8') as file:
     
     for row in reader:
         
-        if len(row) < 4:
+        if len(row) < 5:
             continue
         
+        # colonne --> timestamps,tweet_id,entity,sentiment,message
         colonne = {
-            "tweet_id": row[0],
-            "entity": row[1],
-            "sentiment": row[2],
-            "message": row[3],
+            "timestamp": row[0],
+            "tweet_id": row[1],
+            "entity": row[2],
+            "sentiment": row[3],
+            "message": row[4],
         }
         
         message = json.dumps(colonne)
@@ -39,5 +41,5 @@ with open(dataset, 'r', encoding='utf-8') as file:
         producer.produce(topic, value=message, callback=delivery_report)
         producer.poll(0)
         time.sleep(1)
-        
+
 producer.flush()
