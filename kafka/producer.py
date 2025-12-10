@@ -9,7 +9,7 @@ conf = {
 
 producer = Producer(conf)
 
-dataset = 'dataset/twitter_dataset.csv'
+dataset = '../dataset/twitter_dataset.csv'
 topic = 'social_media_stream'
 
 def delivery_report(err, msg):
