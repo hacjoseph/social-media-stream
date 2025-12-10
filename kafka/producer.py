@@ -39,4 +39,5 @@ with open(dataset, 'r', encoding='utf-8') as file:
         producer.produce(topic, value=message, callback=delivery_report)
         producer.poll(0)
         time.sleep(1)
+        
 producer.flush()
