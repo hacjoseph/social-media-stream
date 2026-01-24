@@ -2,7 +2,16 @@
 
 Une pipeline complète pour la gestion de message en streaming en temps réel. Le projet ingère des données texte de réseaux sociaux, analyse le sentiment des ces messages et fournit des visualisations des tendances globles dynamiquement via Grafana.
 
-![Grafana Dashboard](lien_image_grafana.png)
+<p align="center">
+  <img width="45%" alt="sentiment_pie_percentage" src="https://github.com/user-attachments/assets/37bb2a80-2694-436e-ae4a-ad0030d79cc7" />
+  <img width="45%" alt="positive_ratio_bar_entities" src="https://github.com/user-attachments/assets/ccb8889a-6f08-4d3e-8bb1-83f55ddb4d5d" />
+</p>
+
+<p align="center">
+  <img width="90%" alt="top10_entities_volume" src="https://github.com/user-attachments/assets/e70f9138-e8e2-41c8-9835-5dafb5062cb4" />
+  <img width="90%" alt="sentiment_time_series_global" src="https://github.com/user-attachments/assets/78f07c72-9af9-416c-b476-49ab57cb1dd3" />
+</p>
+
 
 ## Features
 
@@ -11,6 +20,32 @@ Une pipeline complète pour la gestion de message en streaming en temps réel. L
 * Traitement distribué avec Spark Streaming
 * Stockage des résultats dans InfluxDB (time-series database)
 * Visualisation interactive et dashboards Grafana
+
+## How It Works / Architecture
+
+Concrètement, la pipeline se décompose en plusieurs étapes :
+
+1. **Producer (Kafka)**
+   * Lit les données depuis un CSV ou flux social
+   * Envoie chaque message dans le topic `social_media_stream` de Kafka
+
+2. **Spark Streaming**
+   * Consomme les messages Kafka en temps réel
+   * Parse les JSON et calcule le sentiment avec **VADER**
+   * Envoie les résultats dans **InfluxDB**
+
+3. **InfluxDB**
+   * Stocke les données temporelles des sentiments
+   * Permet les requêtes et la gestion des données via Retention Policy
+
+4. **Grafana**
+   * Visualise les sentiments en dashboards interactifs
+   * Permet le suivi par entité et la création de métriques personnalisées
+
+**Architecture générale :**
+<p align="center">
+  <img width="50%" alt="architecture" src="https://github.com/user-attachments/assets/4ba428bd-9d5d-4e54-9567-88507deb31c1" />
+</p>
 
 ## Installation
 
@@ -34,17 +69,18 @@ Le programme requiert les packages Python suivants :
 
 ### Setup
 
-Créer, activer un environnement virtuel :
+Créer, et activer un environnement virtuel :
 
 ```bash
+# linux
 python3 -m venv env
 source env/bin/activate
-```
 
-```powershell
+# windows
 python -m venv env
 env\Scripts\activate
 ```
+
 
 Ensuite, installer les dépendances :
 
@@ -128,7 +164,7 @@ InfluxDB se charge d'expirer automatiquement les données.
 
 → [http://localhost:3000](http://localhost:3000)
 
-* Username : `admin`
+* Login : `admin`
 * Password : `admin123`
 
 * Ajouter InfluxDB comme data source
@@ -152,18 +188,17 @@ from(bucket: "sentiment_stream")
 ```
 
 
+## Auteurs
+
+[@hacjoseph](https://github.com/hacjoseph)
+
+[@imane-hashCode](https://github.com/imane-hashCode)
+
+[@alipascal](https://github.com/alipascal)
+
+
 ## License
 
 Ce projet est sous licence MIT – une licence open source permissive qui permet l’utilisation, la modification et la distribution gratuites du logiciel.
 
 Pour plus de détails, voir la documentation [MIT License](https://opensource.org/licenses/MIT).
-
-
-## Auteurs
-
-[@hacjoseph](https://github.com/hacjoseph)
-[@imane-hashCode](https://github.com/imane-hashCode)
-[@alipascal](https://github.com/alipascal)
-
-
-Imane, Joseph, Alicia
