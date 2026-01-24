@@ -1,169 +1,169 @@
-
 # Real-Time Social Media Sentiment Streaming (Kafka + Spark + InfluxDB + Grafana)
-## Aperçu du projet
 
-Ce projet met en place une pipeline de streaming complète :
+Une pipeline complète pour la gestion de message en streaming en temps réel. Le projet ingère des données texte de réseaux sociaux, analyse le sentiment des ces messages et fournit des visualisations des tendances globles dynamiquement via Grafana.
 
-Producer (Python) ➜ envoie des tweets dans Kafka
+![Grafana Dashboard](lien_image_grafana.png)
 
-Spark Structured Streaming ➜ consomme Kafka, applique VADER et écrit dans InfluxDB
+## Features
 
-InfluxDB ➜ stocke les données
+* Streaming de données sociales en temps réel avec Kafka
+* Analyse de sentiment automatisée via VADER
+* Traitement distribué avec Spark Streaming
+* Stockage des résultats dans InfluxDB (time-series database)
+* Visualisation interactive et dashboards Grafana
 
-Grafana ➜ visualisation temps réel (dashboard par entité / sentiment)
+## Installation
 
-Kafka, InfluxDB et Grafana tournent dans Docker.
-Le Producer et Spark tournent localement (Windows ou Linux).
+### Prérequis
 
-## 1. Prérequis
-Logiciels requis (Windows & Linux)
-    Python	≥ 3.12
-    Java	≥ 11
-    Docker & Docker Compose	Dernière version
-    Spark	4.0.1
-pip	Dernière version
+Logiciels nécessaires (Windows & Linux) :
 
-## 2. Installation des dépendances Python
+* Python ≥ 3.12
+* Java ≥ 11
+* Docker & Docker Compose (dernière version)
+* Spark 4.0.1
 
-Dans la racine du projet :
-Créer un environnement virtuel et installer les dépendances
-    - python -m venv env
+### Dépendances Python
 
-    Linux :
-        - env\Scripts\activate
-    Windows :
-        - source env/bin/activate
+Le programme requiert les packages Python suivants :
 
-    - pip install -r requirements.txt
+- `confluent_kafka` (>= 2.0.0) : Kafka client pour la simulation de message en temps-réel
+- `vaderSentiment` (>= 3.3.2) : Analyse de sentiment pour texte
+- `influxdb-client` (>= 1.36.0) : Gestion deu stockage de données
+- `pyspark` (>= 4.0.1) : Framework de traitement distribué pour gérer le real-time streaming
 
+### Setup
 
-Dépendances principales :
+Créer, activer un environnement virtuel :
 
-confluent_kafka
+```bash
+python3 -m venv env
+source env/bin/activate
+```
 
-vaderSentiment
+```powershell
+python -m venv env
+env\Scripts\activate
+```
 
-influxdb-client
+Ensuite, installer les dépendances :
 
-pyspark
+```bash
+pip install -r requirements.txt
+```
 
-## 3. Lancer l’infrastructure Docker (Kafka + InfluxDB + Grafana)
+## Lancer l'infrastructure Docker
 
-À la racine du projet :
+À la racine du projet, exécuter la commande ci-dessous pour initialiser l'infrastucture Docker :
 
-    docker compose up -d
+```bash
+docker compose up -d
+```
 
+Services démarrés :
 
-Cela démarre automatiquement :
+| Service  | Port | Description                 |
+| -------- | ---- | --------------------------- |
+| Kafka    | 9092 | Broker Kafka                |
+| InfluxDB | 8086 | Base de données Time-Series |
+| Grafana  | 3000 | Dashboards                  |
 
-Service	Port	Description
-Kafka	9092	Broker Kafka
-InfluxDB	8086	Base de données Time-Series
-Grafana	3000	Dashboards
+## Lancer le Producer (hors Docker)
 
-## 4. Lancer le Producer (hors Docker)
+Exécuter la commande ci-dessous dans le dossier dans `/kafka` :
 
-Dans /kafka :
+```bash
+python producer.py
+```
 
-    - python producer.py
+* Lit un CSV et envoie chaque ligne sur Kafka dans le topic `social_media_stream`.
 
+## Lancer Spark Streaming (hors Docker)
 
-Le producer lit un CSV et envoie chaque ligne sur Kafka dans le topic : social_media_stream
+Exécuter la commande ci-dessous dans le dossier `/spark` :
 
-## 5. Lancer Spark Streaming (hors Docker)
+```bash
+python3 main.py # Linux
+python .\main.py # Windows
+```
 
-Dans /spark:
+Rôle de Spark :
+* Lit les messages Kafka
+* Parse les JSON
+* Analyse le sentiment avec VADER
+* Écrit les résultats dans InfluxDB
 
-Linux :
-    - python3 main.py
+Logs attendus :
 
-Windows :
-    - python .\main.py
+```
+Batch 10 written to InfluxDB
+```
 
+## Accéder à InfluxDB
 
-Spark :
+→ [http://localhost:8086](http://localhost:8086)
 
-lit Kafka
+* Username : `admin`
+* Password : `admin123`
 
-parse les JSON
+* Nom du Bucket par défaut : `sentiment_stream`
 
-calcule le sentiment via VADER
+Menu → Data Explorer → Requête :
 
-envoie les résultats dans InfluxDB
+```flux
+from(bucket: "sentiment_stream")
+  |> range(start: -1h)
+```
 
-Tu verras des logs du type :
-
- - Batch 10 written to InfluxDB
-
-
-Cela signifie que les données ont bien été envoyées.
-
-## 6. Accéder à InfluxDB
-
-➡️ http://localhost:8086
-
-Login :
-
-Username : admin
-
-Password : admin123
-
-Bucket par défaut :
-
-sentiment_stream
-
-Vérifier les données :
-
-Menu → Data Explorer
-Puis requête :
-
-    from(bucket: "sentiment_stream")
-        |> range(start: -1h)
-
-## 7. Créer le Dashboard Grafana
-
-➡️ http://localhost:3000
-
-
-LOGIN : admin / admin123
-
-Ajouter InfluxDB comme data source
-
-Connections ➜ Add data source
-
-Choisir InfluxDB
-
-Paramètres :
-
-URL : http://influxdb:8086
-
-Token : my-super-token
-
-Org : social_org
-
-Bucket : sentiment_stream
-
-## 8. Exemple de requête Grafana (sentiment par entité)
-    from(bucket: "sentiment_stream")
-        |> range(start: -7d)
-        |> filter(fn: (r) => r._measurement == "tweets")
-        |> filter(fn: (r) => r._field == "predicted_sentiment")
-        |> group(columns: ["entity", "_value"])
-        |> count()
-
-## 9. Supprimer les anciennes données (Retention Policy)
+### Supprimer les anciennes données, si besoin (Retention Policy)
 
 Dans InfluxDB :
 
-Settings → Buckets → sentiment_stream → Edit
-Choisis une durée :
+* Settings → Buckets → `sentiment_stream` → Edit
+* Choisir une durée : `1h`, `24h`, `7 jours`, `30 jours`
 
-1h
+InfluxDB se charge d'expirer automatiquement les données.
 
-24h
+## Créer le Dashboard Grafana
 
-7 jours
+→ [http://localhost:3000](http://localhost:3000)
 
-30 jours
+* Username : `admin`
+* Password : `admin123`
 
-InfluxDB s'occupe d’expirer les données automatiquement.
+* Ajouter InfluxDB comme data source
+
+Paramètres :
+
+* URL : `http://influxdb:8086`
+* Token : `my-super-token`
+* Org : `social_org`
+* Bucket : `sentiment_stream`
+
+### Exemple de requête Grafana (sentiment par entité)
+
+```flux
+from(bucket: "sentiment_stream")
+  |> range(start: -7d)
+  |> filter(fn: (r) => r._measurement == "tweets")
+  |> filter(fn: (r) => r._field == "predicted_sentiment")
+  |> group(columns: ["entity", "_value"])
+  |> count()
+```
+
+
+## License
+
+Ce projet est sous licence MIT – une licence open source permissive qui permet l’utilisation, la modification et la distribution gratuites du logiciel.
+
+Pour plus de détails, voir la documentation [MIT License](https://opensource.org/licenses/MIT).
+
+
+## Auteurs
+
+[@hacjoseph](https://github.com/hacjoseph)
+[@imane-hashCode](https://github.com/imane-hashCode)
+[@alipascal](https://github.com/alipascal)
+
+
+Imane, Joseph, Alicia
