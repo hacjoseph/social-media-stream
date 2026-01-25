@@ -15,7 +15,7 @@ Une pipeline complète pour la gestion de message en streaming en temps réel. L
 
 ## Features
 
-* Streaming de données sociales en temps réel avec Kafka
+* Streaming de données tyep message de réseau sociale en temps réel avec Kafka
 * Analyse de sentiment automatisée via VADER
 * Traitement distribué avec Spark Streaming
 * Stockage des résultats dans InfluxDB (time-series database)
