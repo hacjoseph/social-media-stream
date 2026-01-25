@@ -88,7 +88,7 @@ Ensuite, installer les dépendances :
 pip install -r requirements.txt
 ```
 
-## Lancer l'infrastructure Docker
+#### Lancer l'infrastructure Docker
 
 À la racine du projet, exécuter la commande ci-dessous pour initialiser l'infrastucture Docker :
 
@@ -104,7 +104,7 @@ Services démarrés :
 | InfluxDB | 8086 | Base de données Time-Series |
 | Grafana  | 3000 | Dashboards                  |
 
-## Lancer le Producer (hors Docker)
+#### Lancer le Producer (hors Docker)
 
 Exécuter la commande ci-dessous dans le dossier dans `/kafka` :
 
@@ -114,7 +114,7 @@ python producer.py
 
 * Lit un CSV et envoie chaque ligne sur Kafka dans le topic `social_media_stream`.
 
-## Lancer Spark Streaming (hors Docker)
+#### Lancer Spark Streaming (hors Docker)
 
 Exécuter la commande ci-dessous dans le dossier `/spark` :
 
@@ -135,7 +135,7 @@ Logs attendus :
 Batch 10 written to InfluxDB
 ```
 
-## Accéder à InfluxDB
+#### Accéder à InfluxDB
 
 → [http://localhost:8086](http://localhost:8086)
 
@@ -151,7 +151,7 @@ from(bucket: "sentiment_stream")
   |> range(start: -1h)
 ```
 
-### Supprimer les anciennes données, si besoin (Retention Policy)
+##### Supprimer les anciennes données, si besoin (Retention Policy)
 
 Dans InfluxDB :
 
@@ -160,7 +160,7 @@ Dans InfluxDB :
 
 InfluxDB se charge d'expirer automatiquement les données.
 
-## Créer le Dashboard Grafana
+#### Créer le Dashboard Grafana
 
 → [http://localhost:3000](http://localhost:3000)
 
@@ -176,7 +176,7 @@ Paramètres :
 * Org : `social_org`
 * Bucket : `sentiment_stream`
 
-### Exemple de requête Grafana (sentiment par entité)
+##### Exemple de requête Grafana (sentiment par entité)
 
 ```flux
 from(bucket: "sentiment_stream")
